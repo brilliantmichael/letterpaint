@@ -1,10 +1,8 @@
 (function(){
 
-  /* Get container elements */
+  /* Get DOM elements */
   var container = document.querySelector('#container');
-  var charscontainer = document.querySelector('#chars');
-
-  /* Get buttons */
+  /* buttons */
   var startbutton = document.querySelector('#intro button');
   var infobutton = document.querySelector('#infos');
   var installbutton = document.querySelector('#install');
@@ -12,29 +10,27 @@
   var reloadbutton = document.querySelector('#reload');
   var soundbutton = document.querySelector('#sound');
   var errorbutton = document.querySelector('#error button');
-
   /* Get sounds */
   var winsound = document.querySelector('#winsound');
   var errorsound = document.querySelector('#errorsound');
 
   /* Prepare canvas */
-  var c = document.querySelector('canvas');
-  var cx = c.getContext('2d');
-  var letter = null;
+  var c = document.querySelector('canvas'); // selects the first canvas element
+  var cx = c.getContext('2d'); // returns CanvasRenderingContext2D object
+  var letter = null; // string the current game letter
+  var fontfamily = '"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif';
   var fontsize = 300;
   var paintcolour = [240, 240, 240];
-  var textcolour = [255, 30, 20];
-  var xoffset = 0;
-  var yoffset = 0;
-  var linewidth = 20;
+  var textcolour = [25, 255, 25];
+  var linewidth = null;
   var pixels = 0;
   var letterpixels = 0;
 
-  /* Mouse and touch events */
+  /* Canvas mouse and touch statuses */
   var mousedown = false;
   var touched = false;
-  var oldx = 0;
-  var oldy = 0;
+  var oldx = 0; // caches the position of the last paint point
+  var oldy = 0; // caches the position of the last paint point
 
   /* Overall game presets */
   var state = 'intro';
@@ -42,10 +38,8 @@
   var currentstate;
 
   function init() {
-    xoffset = container.offsetLeft;
-    yoffset = container.offsetTop;
-    fontsize = container.offsetHeight / 1.5;
-    linewidth = container.offsetHeight / 19;
+    fontsize = container.offsetHeight / 1.5; // dynamically adjusts on resize
+    linewidth = container.offsetHeight / 27; // dynamically adjusts on resize
     paintletter();
     setstate('intro');
   }
@@ -66,7 +60,7 @@
       errorsound.play();
     }
     if (navigator.vibrate) {
-      navigator.vibrate(100);
+      navigator.vibrate(100); // pulses device, if device has hardware
     }
   }
 
@@ -80,14 +74,12 @@
 
   function setstate(newstate) {
     state = newstate;
-    container.className = newstate;
+    container.className = //newstate;
+      newstate + ' page-container';
     currentsate = state;
   }
-  function moreneeded() {
-    setstate('play');
-    mousedown = false;
-  }
   function retry(ev) {
+    // Reset everything
     mousedown = false;
     oldx = 0;
     oldy = 0;
@@ -103,12 +95,59 @@
     paintletter();
   }
   function paintletter(retryletter) {
-    var chars = charscontainer.innerHTML.split('');
-    letter = retryletter ||
-             chars[parseInt(Math.random() * chars.length,10)];
+    var chars = [
+'あ'
+,'い'
+,'う'
+,'え'
+,'お'
+,'か'
+,'き'
+,'く'
+,'け'
+,'こ'
+,'さ'
+,'し'
+,'す'
+,'せ'
+,'そ'
+,'た'
+,'ち'
+,'つ'
+,'て'
+,'と'
+,'な'
+,'に'
+,'ぬ'
+,'ね'
+,'の'
+,'は'
+,'ひ'
+,'ふ'
+,'へ'
+,'ほ'
+,'ま'
+,'み'
+,'む'
+,'め'
+,'も'
+,'や'
+,'ゆ'
+,'よ'
+,'ら'
+,'り'
+,'る'
+,'れ'
+,'ろ'
+,'わ'
+,'を'
+,'ん'
+    ];
+
+    letter = retryletter || chars[parseInt(Math.random() * chars.length,10)];
     c.width = container.offsetWidth;
     c.height = container.offsetHeight;
-    cx.font = 'bold ' + fontsize + 'px Open Sans';
+    cx.font = 'bold ' + fontsize + 'px ' + fontfamily;
     cx.fillStyle = 'rgb(' + textcolour.join(',') + ')';
     cx.strokeStyle = 'rgb(' + paintcolour.join(',') + ')';
     cx.shadowOffsetX = 2;
@@ -151,13 +190,17 @@
     return amount;
   }
 
-  function paint(x, y) {
-    var rx = x - xoffset;
-    var ry = y - yoffset;
-    var colour = pixelcolour(x, y);
+  // Executes on mouse/touch move on touched/mousedown mode 
+  function paint(rx, ry) {
+    //var rx = x - xoffset;
+    //var ry = y - yoffset;
+    var colour = pixelcolour(rx, ry); // the current background rgb
+
+    // Detects for the edge of the letter
     if( colour.r === 0 && colour.g === 0 && colour.b === 0) {
       showerror();
     } else {
+      // Trace the paintbrush
       cx.beginPath();
       if (oldx > 0 && oldy > 0) {
         cx.moveTo(oldx, oldy);
@@ -187,7 +230,7 @@
         paintcolour[1],
         paintcolour[2]
       ) / letterpixels > 0.35) {
-       setstate('win');
+       setstate('win');												// WIN
        if (sound) {
          winsound.play();
        }
@@ -195,8 +238,7 @@
     }
   }
 
-
-  function install() {
+  /*function install() {
     if (navigator.mozApps) {
       var checkIfInstalled = navigator.mozApps.getSelf();
       checkIfInstalled.onsuccess = function () {
@@ -214,21 +256,25 @@
         }
       };
     }
-  }
+  }*/
 
   /* Mouse event listeners */
 
   function onmouseup(ev) {
     ev.preventDefault();
+
+    // Reset everything
     oldx = 0;
     oldy = 0;
     mousedown = false;
     pixelthreshold();
   }
+
   function onmousedown(ev) {
     ev.preventDefault();
     mousedown = true;
   }
+
   function onmousemove(ev) {
     ev.preventDefault();
     if (mousedown) {
@@ -242,12 +288,16 @@
   function ontouchstart(ev) {
     touched = true;
   }
+
   function ontouchend(ev) {
     touched = false;
+
+    // Reset everything
     oldx = 0;
     oldy = 0;
     pixelthreshold();
   }
+
   function ontouchmove(ev) {
     if (touched) {
       paint(
@@ -262,7 +312,7 @@
 
   errorbutton.addEventListener('click', retry, false);
   infobutton.addEventListener('click', showinfo, false);
-  installbutton.addEventListener('click', install, false);
+  //installbutton.addEventListener('click', install, false);
   reloadbutton.addEventListener('click', cancel, false);
   soundbutton.addEventListener('click', togglesound, false);
   winbutton.addEventListener('click', winner, false);
@@ -281,13 +331,13 @@
   window.addEventListener('resize',init, false);
 
   /* Cache update ready? Reload the page! */
-  var cache = window.applicationCache;
+  /*var cache = window.applicationCache;
   function refresh() {
     if (cache.status === cache.UPDATEREADY) {
      cache.swapCache();
      window.location.reload();
     }
   }
-  cache.addEventListener('updateready', refresh, false);
+  cache.addEventListener('updateready', refresh, false);*/
 
 })();
